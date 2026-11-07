@@ -1,11 +1,9 @@
 import asyncio
 import logging
-import os
 from aiogram import Bot, Dispatcher, F, Router
 from aiogram.filters import Command
 from aiogram.types import (
     CallbackQuery,
-    FSInputFile,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     Message,
@@ -14,13 +12,17 @@ from aiogram.types import (
 # Bot API Tokenin
 TOKEN = "9181601804:AAFItnKGgrRpUa95ogtFdkeiL9KhHMwObCE"
 
-# Zorunlu Kanalların Kullanıcı Adları
+# Zorunlu Abone Olunması Gereken Kanallar
 CHANNELS = ["@swarovskiyeniden", "@swarovskihile"]
+
+# Dosyanın bulunduğu gizli/açık kanal ve mesaj ID bilgisi
+FILE_CHANNEL = "@hilemfk"
+FILE_MESSAGE_ID = 3
 
 router = Router()
 
 
-# Kullanıcının kanallarda olup olmadığını kontrol eden fonksiyon
+# Kullanıcının zorunlu kanallarda olup olmadığını kontrol eden fonksiyon
 async def check_user_subscriptions(bot: Bot, user_id: int) -> bool:
   for channel in CHANNELS:
     try:
@@ -32,7 +34,7 @@ async def check_user_subscriptions(bot: Bot, user_id: int) -> bool:
   return True
 
 
-# Kanallara katılım butonları (Şık ve Renkli)
+# Kanallara katılım butonları
 def get_subscribe_keyboard():
   return InlineKeyboardMarkup(
       inline_keyboard=[
@@ -55,7 +57,7 @@ def get_subscribe_keyboard():
   )
 
 
-# Ana Menü Butonları (Rootlu sürüm aktif)
+# Ana Menü Butonları
 def get_standoff_keyboard():
   return InlineKeyboardMarkup(
       inline_keyboard=[
@@ -122,7 +124,7 @@ async def verify_subscription(callback: CallbackQuery, bot: Bot):
   )
 
 
-# Rootlu butonuna basıldığında dosya gönderimi
+# Rootlu butonuna basıldığında dosyayı kanaldan kopyalayıp gönder
 @router.callback_query(F.data == "send_root")
 async def send_root_file(callback: CallbackQuery, bot: Bot):
   if not await check_user_subscriptions(bot, callback.from_user.id):
@@ -131,24 +133,24 @@ async def send_root_file(callback: CallbackQuery, bot: Bot):
     )
     return
 
-  await callback.answer("📦 Dosyan hazırlanıyor, lütfen bekçi...")
-  file_path = "rootlu.apk"
+  await callback.answer("📦 Dosyan kanaldan çekiliyor, lütfen bekle...")
 
-  if os.path.exists(file_path):
-    document = FSInputFile(file_path)
-    await callback.message.answer_document(
-        document=document,
+  try:
+    # Dosyayı sunucuya yüklemek yerine direkt depolama kanalından kopyalayıp atıyoruz (25MB+ sınırı aşılır!)
+    await bot.copy_message(
+        chat_id=callback.message.chat.id,
+        from_chat_id=FILE_CHANNEL,
+        message_id=FILE_MESSAGE_ID,
         caption=(
             "⚡ **Standoff 2 Rootlu Sürüm Başarıyla Gönderildi!** ⚡\n\n"
             "🎯 *İyi eğlenceler dileriz, bizi takipte kalmayı unutma!* "
             "[@swarovskihile]"
         ),
-        parse_mode="Markdown",
     )
-  else:
+  except Exception as e:
     await callback.message.answer(
-        "⚠️ `rootlu.apk` dosyası sunucu klasöründe bulunamadı! "
-        "Lütfen yöneticinin dosyayı yüklediğinden emin ol.",
+        "⚠️ Dosya gönderilirken bir hata oluştu! "
+        "Lütfen botun `@hilemfk` kanalında yönetici olduğundan emin ol.",
         parse_mode="Markdown",
     )
 
@@ -158,10 +160,11 @@ async def main():
   dp = Dispatcher()
   dp.include_router(router)
 
-  print("Bot süslü tasarımıyla başarıyla başlatıldı ve çalışıyor...")
+  print("Kanal destekli bot başarıyla başlatıldı ve çalışıyor...")
   await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
   logging.basicConfig(level=logging.INFO)
   asyncio.run(main())
+    
