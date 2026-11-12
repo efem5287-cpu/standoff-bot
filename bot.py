@@ -13,7 +13,7 @@ from aiogram.types import (
 )
 
 # Bot API Tokenin
-TOKEN = "9181601804:AAFItnKGgrRpUa95ogtFdkeiL9KhHMwObCE"
+TOKEN = "9181601804:AAGJYvNYk3fjsAMmAmW90FM2jjm1bA4qgUU"
 
 # Zorunlu Katılınması Gereken 3 Kanal
 CHANNELS = ["@swarovskiyeniden", "@swarovskihile", "@hilemfk"]
