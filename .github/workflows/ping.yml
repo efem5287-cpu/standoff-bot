@@ -1,14 +1,19 @@
-name: Self Ping Bot
+name: Continuous Ping
 
 on:
   schedule:
-    - cron: '*/2 * * * *'
+    - cron: '*/5 * * * *'
   workflow_dispatch:
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Send HTTP Request
-        run: curl https://standoff-bot-4.onrender.com
-        
+      - name: Ping Loop
+        run: |
+          for i in {1..5}; do
+            curl -s https://standoff-bot-4.onrender.com > /dev/null
+            echo "Ping atıldı: $i"
+            sleep 60
+          done
+          
