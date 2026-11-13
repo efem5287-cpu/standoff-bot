@@ -1,0 +1,14 @@
+name: Self Ping Bot
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # Her 5 dakikada bir çalışır
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send HTTP Request
+        run: curl https://standoff-bot-4.onrender.com
+        
